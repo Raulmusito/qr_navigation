@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 import rospy
 import message_filters
-from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import NavSatFix
 from sensor_msgs.msg import Imu 
-from geometry_msgs.msg import PoseStamped
-
 
 latitude = 0
 longitude = 0
@@ -24,13 +21,15 @@ def gps_callback(data):
     altitude  = data.altitude 
     
 def imu_callback(data): 
-    global latitude, longitude, altitude, imu_x, imu_y, imu_z, imu_w
+    global latitude, longitude, altitude
+    
     imu_x = data.orientation.x              #// identity quaternion
     imu_y = data.orientation.y             #// identity quaternion
     imu_z = data.orientation.z             #// identity quaternion
     imu_w = data.orientation.w 
-    odom_pub = rospy.Publisher('combined_odom', Odometry, queue_size = 1)
+    
     odom_msg = Odometry()
+    
     odom_msg.header.seq = data.header.seq
     odom_msg.header.stamp = rospy.get_rostime()                #  // time of gps measurement
     odom_msg.header.frame_id = data.header.frame_id          #// the tracked robot frame
@@ -54,6 +53,8 @@ def odom_publisher():
 
     rospy.Subscriber("ublox/fix", NavSatFix, gps_callback)
     rospy.Subscriber("imu/data", Imu, imu_callback)
+    odom_pub = rospy.Publisher('combined_odom', Odometry, queue_size = 1)
+
     rospy.spin()
 
 if __name__ == '__main__':
